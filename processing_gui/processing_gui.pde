@@ -11,8 +11,13 @@ JSONObject plotterConfigJSON;
 // TODO: make mockupSerial work
 boolean mockupSerial = false;
 
-Serial port;
-//button setup
+// Serial variables
+Serial port;      // The serial port
+String inString;  // Input string from serial port
+boolean newString = false; // Whether a new string is available
+int lf = 10;      // ASCII linefeed
+
+// Button variables
 color currentcolor;
 color fontcolor;
 RectButton rect1; //vibration
@@ -113,7 +118,7 @@ void setup() {
     // start serial communication
     if (!mockupSerial) {
       //String serialPortName = Serial.list()[3];
-      port = new Serial(this, Serial.list()[1], 9600);
+      port = new Serial(this, Serial.list()[0], 9600);
       //serialPort = new Serial(this, serialPortName, 115200);
     }
     else
@@ -263,7 +268,7 @@ void draw() {
   fill(fontcolor);
   text("force sensor reading: ", 30, 70 + 4 * yspacing + 20 + 30);
   text(int(forceData), 30 + xspacing * 10, 70 + 5 * yspacing + 20 + 30);
-  delay(50);
+  delay(20);
    
   // log
   log.display();
@@ -273,6 +278,11 @@ void draw() {
   start.display();start.update();
 }
  
+ 
+void serialEvent(Serial p) {
+  inString = p.readString();
+  newString = true;
+}
  
 void update(int x, int y) {
   
