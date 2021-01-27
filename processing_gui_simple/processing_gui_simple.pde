@@ -44,7 +44,9 @@ String topSketchPath = "";
 String[] record;
 
 void setup() {
-  
+  for (String element : Serial.list()) { 
+     println(element);
+   }
    port = new Serial(this, Serial.list()[0], 9600);
    port.bufferUntil(lf);
    //set up window
