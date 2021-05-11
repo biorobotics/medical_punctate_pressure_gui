@@ -1,6 +1,8 @@
 // import libraries
 import java.awt.Frame;
 import java.awt.BorderLayout;
+import java.util.Calendar;
+import java.util.TimeZone;
 import processing.serial.*;
 
 // Serial variables
@@ -13,16 +15,23 @@ int lf = 10;      // ASCII linefeed
 color currentcolor;
 color fontcolor;
 
+// Recording variables
 float forceData = 0;
 float tempData = 0;
+Calendar calendar;
 
+// Button and recording objects
 Temp temp;
+Vibration vibrate;
+LogButton log;
+Label currentTemp;
+Label currentForce;
+Recording recording;
 
 int yspacing = 40;
 int xspacing = 4;
 
 int goalTemp = 27;
-int prevGoalTemp = 0;
 color baseColor = color(50);
 boolean vMode = false;
 PFont font;
@@ -43,99 +52,89 @@ String topSketchPath = "";
 
 String[] record;
 
+int lineheight = yspacing;
+
 void setup() {
   for (String element : Serial.list()) { 
-     println(element);
-   }
-   port = new Serial(this, Serial.list()[0], 9600);
-   port.bufferUntil(lf);
-   //set up window
-   surface.setTitle("Punctate Pressure Interface");
-   size(1000,800);
-   font = loadFont("Verdana-20.vlw");
-   textFont(font,50);
+    println(element);
+  }
+  //port = new Serial(this, Serial.list()[0], 9600);
+  //port.bufferUntil(lf);
+  //set up window
+  surface.setTitle("Punctate Pressure Interface");
+  surface.setResizable(true);
+  size(1000, 800);
+  font = loadFont("Verdana-20.vlw");
+  textFont(font, 50);
 
-   currentcolor = baseColor;
-   fontcolor = 255;
-   //int x = 30;
-   //int y = 200;
-   int size = 20;
-   color buttoncolor = color(100,100,200);
-   //color buttoncolor2 = color(1,1,1);
-   color highlight = color(0,0,255);
-   
-   
-   temp = new Temp(153+ xspacing*40, 70, 100);
+  currentcolor = baseColor;
+  fontcolor = 255;
+
+  color buttoncolor = color(100, 100, 200);
+  color highlight = color(0, 0, 255);
+  
+  temp = new Temp(xspacing, lineheight, 100, "Goal temperature");
+  lineheight += yspacing;
+  currentTemp = new Label(xspacing, lineheight, 100, "Current temperature");
+  lineheight += yspacing;
+  currentForce = new Label(xspacing, lineheight, 100, "Current force");
+  lineheight += yspacing;
+  vibrate = new Vibration(xspacing, lineheight, yspacing, "Vibration");
+  lineheight += yspacing;
+  recording = new Recording(xspacing, lineheight, 125, "Recording");
+  lineheight += yspacing;
 }
 
 void draw() {
   background(20);
-  if(newString) {
-    if(inString.length() > 4 && inString.substring(0,3).equals("FBK")){
+  if (newString) {
+    if (inString.length() > 4 && inString.substring(0, 3).equals("FBK")) {
       String[] fbk = split(inString, ' ');
       tempData = float(fbk[2]);
       forceData = float(fbk[1]);
-      
     }
     newString = false;
   }
-  
+
   // draw date and time
   fill(220);
   noStroke();
   rect(0, 0, width-1, 20 + 15);
-  rect(0, 230, width - 1, 4);
+  rect(0, lineheight, width - 1, 4);
   rect(0, 0, xspacing * date.length() * 5, 20 + 15);
   fill(0);
   rect(300, 0, 2, 50);
   fill(0);
   textSize(20);
   textAlign(LEFT);
-  text(date , 30, 70 - yspacing);
+  text(date, 30, 70 - yspacing);
+
+  // log
+  //log.display();
+  //log.update();  
+
   // time
   h = String.valueOf(hour());
   mi = String.valueOf(minute());
   time = "Time: " + h + ":" + mi;
   fill(0);
   textSize(20);
-  text(time , 30 + xspacing * date.length() * 4 + yspacing, 70 - yspacing);  
+  text(time, 50 + xspacing * date.length() * 4 + yspacing, 65 - yspacing);  
 
-   
-  // draw vibration
-  fill(fontcolor);
-  text("vibration", 30, 70 + 2*yspacing);
-   
-   
-  // goal temp;
-  fill(fontcolor);
-  text("Goal Temperature: ", 30, 70);
-  if (goalTemp != prevGoalTemp) {
-    port.write(goalTemp + "\n");
-    prevGoalTemp = goalTemp;
-  }
-   
-  // current temp
-  fill(fontcolor);
+
+  // draw buttons and labels
+  vibrate.display();
   temp.display();
-  text("Current Temperature: ", 350, 250 + 30);
-  text(tempData, 350, 250 + yspacing + 30);
-   
-   
-  // draw distance
-  fill(fontcolor);
-  text("distance: ", 30, 70 + 3*yspacing);
-  //dist.display();
-   
-  //draw force sensor reading
-  fill(fontcolor);
-  text("force sensor reading: ", 30, 70 + 4 * yspacing + 20 + 30);
-  text(forceData, 30 + xspacing * 10, 70 + 5 * yspacing + 20 + 30);
+  currentTemp.setInput(str(tempData));
+  currentTemp.display();
+  currentForce.setInput(str(forceData));
+  currentForce.display();
+  recording.updateRecording(tempData, forceData);
+  recording.display();
+
+  // Update rate
   delay(10);
-   
-  // log
-  //log.display();
-  //log.update();
-   
+
   // draw start & stop
   //start.display();start.update();
 }
@@ -144,30 +143,30 @@ void serialEvent(Serial p) {
   inString = p.readString();
   newString = true;
 }
- 
+
 void update(int x, int y) {
-  
-   //if(locked == false) {
-   //   if(mousePressed) {
-   //     if(rect1.pressed()) { 
-   //       if (rect1.am == false) {
-   //         rect1.am = true;
-   //         port.write("v");
-   //       } else {
-   //         rect1.am = false;
-   //         port.write("nv");
-   //       }
-   //     } 
-   //  }
-   //  locked = false;
-   //} else {
-   //   locked = false;
-   //}
-   
-//   if (!start.on){
-//     tog1.setValue(0);
-//     tog2.setValue(0);
-//   }
+
+  //if(locked == false) {
+  //   if(mousePressed) {
+  //     if(rect1.pressed()) { 
+  //       if (rect1.am == false) {
+  //         rect1.am = true;
+  //         port.write("v");
+  //       } else {
+  //         rect1.am = false;
+  //         port.write("nv");
+  //       }
+  //     } 
+  //  }
+  //  locked = false;
+  //} else {
+  //   locked = false;
+  //}
+
+  //   if (!start.on){
+  //     tog1.setValue(0);
+  //     tog2.setValue(0);
+  //   }
 }
 
 
@@ -175,90 +174,263 @@ void mousePressed() {
   println(mouseX, ", ", mouseY);
   update(mouseX, mouseY);
   temp.updateMouse();
-  
+  vibrate.updateMouse();
+  recording.updateMouse();
 }
 
 void keyPressed() {
-  if (key == 'v') {
-    port.write("v\n");
-  } else if ( key == 'n') {
-    port.write("nv\n");
-  } else {
-    temp.updateKey(key);
-  }
+  temp.updateKey(key);
 }
 
 boolean overRect(int x, int y, int width, int height) {
-   if (mouseX >= x && mouseX <= x+width && mouseY >= y && mouseY <= y+height) {
-      return true;
-   } else {
-      return false;
-   }
+  if (mouseX >= x && mouseX <= x+width && mouseY >= y && mouseY <= y+height) {
+    return true;
+  } else {
+    return false;
+  }
 }
 
-class Temp {
+class LogButton {
+  String[] savedString;
+  String filename;
+  String name;
+  int x;
+  int y;
+  int w, h;
+  color basecolor, highlightcolor, currentcolor;
+  boolean on = false;
+
+  LogButton(int ix, int iy, String ifilename, String iname, color icolor, color ihighlight) {
+    filename = ifilename;
+    savedString = new String[1];
+    x = ix;
+    y = iy;
+    w = yspacing*iname.length() / 2 ;
+    h = yspacing*3/4;
+    highlightcolor = ihighlight;
+    currentcolor = icolor;
+    name = iname;
+  }
+
+
+  boolean over() {
+    if (overRect(x-w/2, y-h*3/4, w, h) ) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  void display() {
+    noStroke();
+    fill(currentcolor);
+    rect(x-w/2, y-h*3/4, w, h);
+    fill(fontcolor);
+    text(name, x- w/4, y);
+  }
+
+  void update() {
+    if (over() && mousePressed) {
+      currentcolor = color(100);
+      if (name == "start") {
+        name = "stop";
+        on = true;
+      } else if (name == "stop") {
+        name = "start";
+        on = false;
+      }
+    } else if (over()) {
+      currentcolor = color(190);
+    } else {
+      currentcolor = basecolor;
+    }
+  }
+
+  void updateMouse() {
+    if (over()) {
+      sec = String.valueOf(second());
+      //println(time);
+      filename = m+"-"+d+"-"+ String.valueOf(year()) + " at " + String.valueOf(hour()) + "." + mi + "." + sec;
+      save(filename);
+    }
+  }
+}
+
+class Label {
+  int x, y, w, h;
+  String label;
   String input;
-  String savedText;
-  int x, y;
-  int w;
-  int h = yspacing*3/4;
-  boolean selected;
+  color inputbg;
+  boolean centered;
   
-  Temp(int ix, int iy, int iw) {
+  Label(int ix, int iy, int iw, String ilabel) {
+    // Drawing variables
     x = ix;
     y = iy;
     w = iw;
-    selected = false;
+    h = yspacing*3/4;
+    label = ilabel + ": ";
     input = "";
+    inputbg = color(20);
+    centered = false;
   }
   
+  void display() {
+    int labelwidth = int(textWidth(label));
+    int centerheight = y + yspacing / 2;
+    fill(fontcolor);
+    textAlign(LEFT, CENTER);
+    text(label, x, centerheight);
+    noStroke();
+    fill(inputbg);
+    rect(x + labelwidth, centerheight - h/2, w, h);
+    fill(fontcolor);
+    textAlign(LEFT, CENTER);
+    if (centered) {
+      text(input, x + labelwidth + w/2 - textWidth(input) / 2, centerheight);
+    } else {
+      text(input, x + labelwidth, centerheight);
+    }
+  }
+  
+  void setInput(String in) {
+     input = in;
+  }
+
   boolean over() {
-    if(overRect(x-w/2, y-h*3/4, w, h) ) {
-       return true;
-     } else {
-       //print(x-w/2, y-h*3/4, w, h);
-      
-       return false;
-     }
-   }
-   void display() {
-      noStroke();
-      fill(100);
-      rect(x-w/2, y-h*3/4, w, h);
-      fill(fontcolor);
-      if (selected) {
-        text(input, x, y);
+    int labelwidth = int(textWidth(label));
+    int centerheight = y + yspacing / 2;
+    if (overRect(x + labelwidth, centerheight - h/2, w, h) ) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+}
+
+class Vibration extends Label{
+  boolean selected;
+  
+  Vibration(int ix, int iy, int iw, String ilabel) {
+    super(ix, iy, iw, ilabel);
+    selected = false;
+    inputbg = color(200, 100, 100);
+  }
+  
+  void updateMouse() {
+    if (over()) {
+      selected = !selected;
+      if(selected) {
+        inputbg = color(100, 200, 100);
       } else {
-        text(goalTemp, x, y);
+        inputbg = color(200, 100, 100);
       }
-      textAlign(BASELINE);
-   }
-   
-   void updateMouse() {
-     if (over()) {
-       selected = true;
-     } else {
-       selected = false;
-     }
-   }
-   
-   void updateKey(char k) {
-     if (selected) {
-       if (k == '\n') {
-         selected = false;
-         if (int(input) < 50) {
-           goalTemp = int(input);
-           goalTemp = min(41, max(25,goalTemp));  //bound in 25 to 
-         }
-         input = "";
-       } else if  (k == BACKSPACE){
-         input = input.substring(0, max(0, input.length()-1));
-       } else {
-         int num = k - '0';
-         if (num >=0 && num <=9) {
-           input = input + k;
-         }
-       }
-     }
-   }
+    }
+  }
+  
+}
+
+class Temp extends Label {
+  boolean selected;
+  String savedText;
+  boolean clear;
+
+  Temp(int ix, int iy, int iw, String ilabel) {
+    super(ix, iy, iw, ilabel);
+    input = str(goalTemp);
+    clear = false;
+    centered = true;
+    inputbg = color(50);
+  }
+  
+  void updateMouse() {
+    if (over()) {
+      inputbg = color(100);
+      selected = true;
+    } else {
+      inputbg = color(50);
+      selected = false;
+      updateKey('\n');
+    }
+  }
+
+  void updateKey(char k) {
+    if (selected) {
+      if (k == '\n') {
+        selected = false;
+        clear = false;
+        if (input.length() > 0) {
+          goalTemp = int(input);
+          goalTemp = min(41, max(25, goalTemp));  //bound in 25 to
+        }
+        input = str(goalTemp);
+        inputbg = color(50);
+      } else if  (k == BACKSPACE) {
+        input = input.substring(0, max(0, input.length()-1));
+      } else {
+        if(!clear) { 
+          input = "";
+          clear = true;
+        }
+        int num = k - '0';
+        if (num >=0 && num <=9) {
+          input = input + k;
+        }
+      }
+    }
+  }
+}
+
+class Recording extends Label {
+  boolean recording;
+  int startTime; 
+  PrintWriter output;
+
+  Recording(int ix, int iy, int iw, String ilabel) {
+    super(ix, iy, iw, ilabel);
+    startTime = currentSec();
+    input = "00:00:00";
+    centered = true;
+    inputbg = color(50);
+    recording = false;
+  }
+  
+  int currentSec() {
+    return hour() * 60 * 60 + minute() * 60 + second();
+  }
+  
+  void updateMouse() {
+    if (over()) {
+      recording = !recording;
+      if(recording) {
+        output = createWriter(filenameGen()); 
+        startTime = currentSec();
+        inputbg = color(200, 100, 100);
+      } else {
+        inputbg = color(50);
+        output.flush(); // Writes the remaining data to the file
+        output.close(); // Finishes the file
+      }
+    }
+  }
+  
+  String filenameGen() {
+    return nf(year(), 4) + "-" + nf(month(), 2) + "-" + nf(day(), 2) + "_" + nf(hour(),2) + "-" + nf(minute(), 2) + "-" + nf(second(), 2) + ".txt";
+  }
+  
+  void updateRecording(float temp, float force) {
+    if (recording) {
+      // Display time
+      int secs = currentSec() - startTime;
+      input = nf(secs / 60 / 60 % 60, 2) + ":" + nf(secs / 60 % 60, 2) + ":" + nf(secs % 60, 2);
+      // Recording line
+      calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+      float seconds = calendar.get(Calendar.SECOND) + calendar.get(Calendar.MILLISECOND) / 1000.0;
+      String date = nf(year(), 4) + "-" + nf(month(), 2) + "-" + nf(day(), 2) + " " + nf(hour(),2) + ":" + nf(minute(), 2) + ":" + nf(seconds, 2, 3); 
+      String nextLine = date + ", " + nfs(temp, 3, 3) + ", " + nfs(force, 3, 3);
+      output.println(nextLine);
+      println(nextLine);
+    }
+  }
+  
 }
