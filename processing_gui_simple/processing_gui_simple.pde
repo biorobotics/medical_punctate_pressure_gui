@@ -58,8 +58,8 @@ void setup() {
   for (String element : Serial.list()) { 
     println(element);
   }
-  //port = new Serial(this, Serial.list()[0], 9600);
-  //port.bufferUntil(lf);
+  port = new Serial(this, Serial.list()[1], 9600);
+  port.bufferUntil(lf);
   //set up window
   surface.setTitle("Punctate Pressure Interface");
   surface.setResizable(true);
@@ -190,72 +190,6 @@ boolean overRect(int x, int y, int width, int height) {
   }
 }
 
-class LogButton {
-  String[] savedString;
-  String filename;
-  String name;
-  int x;
-  int y;
-  int w, h;
-  color basecolor, highlightcolor, currentcolor;
-  boolean on = false;
-
-  LogButton(int ix, int iy, String ifilename, String iname, color icolor, color ihighlight) {
-    filename = ifilename;
-    savedString = new String[1];
-    x = ix;
-    y = iy;
-    w = yspacing*iname.length() / 2 ;
-    h = yspacing*3/4;
-    highlightcolor = ihighlight;
-    currentcolor = icolor;
-    name = iname;
-  }
-
-
-  boolean over() {
-    if (overRect(x-w/2, y-h*3/4, w, h) ) {
-      return true;
-    } else {
-      return false;
-    }
-  }
-
-  void display() {
-    noStroke();
-    fill(currentcolor);
-    rect(x-w/2, y-h*3/4, w, h);
-    fill(fontcolor);
-    text(name, x- w/4, y);
-  }
-
-  void update() {
-    if (over() && mousePressed) {
-      currentcolor = color(100);
-      if (name == "start") {
-        name = "stop";
-        on = true;
-      } else if (name == "stop") {
-        name = "start";
-        on = false;
-      }
-    } else if (over()) {
-      currentcolor = color(190);
-    } else {
-      currentcolor = basecolor;
-    }
-  }
-
-  void updateMouse() {
-    if (over()) {
-      sec = String.valueOf(second());
-      //println(time);
-      filename = m+"-"+d+"-"+ String.valueOf(year()) + " at " + String.valueOf(hour()) + "." + mi + "." + sec;
-      save(filename);
-    }
-  }
-}
-
 class Label {
   int x, y, w, h;
   String label;
@@ -322,7 +256,9 @@ class Vibration extends Label{
       selected = !selected;
       if(selected) {
         inputbg = color(100, 200, 100);
+        port.write("v");
       } else {
+        port.write("nv");
         inputbg = color(200, 100, 100);
       }
     }
