@@ -23,7 +23,6 @@ Calendar calendar;
 // Button and recording objects
 Temp temp;
 Vibration vibrate;
-LogButton log;
 Label currentTemp;
 Label currentForce;
 Recording recording;
@@ -58,7 +57,7 @@ void setup() {
   for (String element : Serial.list()) { 
     println(element);
   }
-  port = new Serial(this, Serial.list()[1], 9600);
+  port = new Serial(this, Serial.list()[0], 9600);
   port.bufferUntil(lf);
   //set up window
   surface.setTitle("Punctate Pressure Interface");
@@ -256,9 +255,9 @@ class Vibration extends Label{
       selected = !selected;
       if(selected) {
         inputbg = color(100, 200, 100);
-        port.write("v");
+        port.write("v\n");
       } else {
-        port.write("nv");
+        port.write("nv\n");
         inputbg = color(200, 100, 100);
       }
     }
