@@ -23,6 +23,7 @@
 MAX30205 max30205;
 
 // Peltier variables
+bool hasTemp = false;
 float temperature;
 float targetTemp = 27;
 float temp_error;
@@ -61,11 +62,20 @@ void setup()
   inputString.reserve(200);
 
   //scan for temperature in every 30 sec untill a sensor is found. Scan for both addresses 0x48 and 0x49
-  while (!max30205.scanAvailableSensors()) {
-    Serial.println("Error: Couldn't find the temperature sensor, please connect the sensor." );
-    delay(30000);
+  int tries = 0;
+  while (tries < 1) {
+    if (!max30205.scanAvailableSensors()) {
+      tries ++;
+      Serial.println("Error: Couldn't find the temperature sensor, please connect the sensor." );
+      delay(3000);
+    } else {
+      hasTemp = true;
+      break;
+    }
   }
-  max30205.begin();
+  if(hasTemp) {
+    max30205.begin();
+  }
   Serial.println("STARTING");
   pinMode(high_switch, OUTPUT);
   pinMode(low_switch, OUTPUT);
@@ -99,8 +109,10 @@ void loop()
   delay(50);
 
   // temp control
-  temperature = max30205.getTemperature();
-  temp_error = targetTemp - temperature;
+  if(hasTemp) {
+    temperature = max30205.getTemperature();
+    temp_error = targetTemp - temperature;
+  }
   Serial.println("FBK " + String((forceReading - zero_output)*force_scaling) + " " + String(temperature));
 
   delay(50);

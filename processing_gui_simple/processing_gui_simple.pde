@@ -57,7 +57,7 @@ void setup() {
   for (String element : Serial.list()) { 
     println(element);
   }
-  port = new Serial(this, Serial.list()[0], 9600);
+  port = new Serial(this, "/dev/serial/by-id/usb-Arduino__www.arduino.cc__0043_55739323837351610172-if00", 9600);
   port.bufferUntil(lf);
   //set up window
   surface.setTitle("Punctate Pressure Interface");
@@ -297,6 +297,7 @@ class Temp extends Label {
         if (input.length() > 0) {
           goalTemp = int(input);
           goalTemp = min(41, max(25, goalTemp));  //bound in 25 to
+          port.write(String.format("%d\n",goalTemp));
         }
         input = str(goalTemp);
         inputbg = color(50);
