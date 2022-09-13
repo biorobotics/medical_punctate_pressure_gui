@@ -179,6 +179,7 @@ void mousePressed() {
 
 void keyPressed() {
   temp.updateKey(key);
+  print(key);
 }
 
 boolean overRect(int x, int y, int width, int height) {
