@@ -1,2 +1,2 @@
-processing_gui_simple/*.txt
-processing_gui_simple/data/*.txt
+*.txt
+*.csv

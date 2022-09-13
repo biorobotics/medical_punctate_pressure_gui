@@ -19,6 +19,7 @@ color fontcolor;
 float forceData = 0;
 float tempData = 0;
 Calendar calendar;
+boolean markPoint;
 
 // Button and recording objects
 Temp temp;
@@ -177,9 +178,12 @@ void mousePressed() {
   recording.updateMouse();
 }
 
-void keyPressed() {
+void keyPressed(KeyEvent event) {
   temp.updateKey(key);
-  print(key);
+  println("keyCode="+keyCode);
+  if (keyCode == 67) { // C KEY 
+    markPoint = true;
+  }
 }
 
 boolean overRect(int x, int y, int width, int height) {
@@ -352,7 +356,7 @@ class Recording extends Label {
   }
   
   String filenameGen() {
-    return nf(year(), 4) + "-" + nf(month(), 2) + "-" + nf(day(), 2) + "_" + nf(hour(),2) + "-" + nf(minute(), 2) + "-" + nf(second(), 2) + ".txt";
+    return nf(year(), 4) + "-" + nf(month(), 2) + "-" + nf(day(), 2) + "_" + nf(hour(),2) + "-" + nf(minute(), 2) + "-" + nf(second(), 2) + ".csv";
   }
   
   void updateRecording(float temp, float force) {
@@ -364,10 +368,16 @@ class Recording extends Label {
       calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
       float seconds = calendar.get(Calendar.SECOND) + calendar.get(Calendar.MILLISECOND) / 1000.0;
       String date = nf(year(), 4) + "-" + nf(month(), 2) + "-" + nf(day(), 2) + " " + nf(hour(),2) + ":" + nf(minute(), 2) + ":" + nf(seconds, 2, 3); 
-      String nextLine = date + ", " + nfs(temp, 3, 3) + ", " + nfs(force, 3, 3);
+      String nextLine = date + ", " + nfs(temp, 3, 3) + ", " + nfs(force, 3, 3) + ", ";
+      if (markPoint) {
+        nextLine += "MARK";
+      }
+      else {
+        nextLine += " ";
+      }
       output.println(nextLine);
-      println(nextLine);
     }
+    markPoint = false;
   }
   
 }
