@@ -43,14 +43,14 @@ String inputString = "";         // a String to hold incoming data
 bool stringComplete = false;  // whether the string is complete
 
 // Vibration variables
-const int vMotorPwm = 153;
+const int vMotorPwm = 255;
 
 //Pins
 const int pwm_pin = 9;
 const int high_switch = 8;
 const int low_switch = 7;
 const int vMotor = 5;
-const int forcePin = 0;
+const int forcePin = A0;
 
 
 void setup()
@@ -106,7 +106,7 @@ void loop()
   // force
   forceReading = analogRead(forcePin); // /1023
   // Serial.println("f" + String((forceReading-zero_output)*2.414* 0.0098));
-  delay(50);
+  delay(20);
 
   // temp control
   if(hasTemp) {
@@ -115,7 +115,7 @@ void loop()
   }
   Serial.println("FBK " + String((forceReading - zero_output)*force_scaling) + " " + String(temperature));
 
-  delay(50);
+  delay(20);
 
   float deadzone = stableRange / (isTempStable ? 1 : 2);
 
