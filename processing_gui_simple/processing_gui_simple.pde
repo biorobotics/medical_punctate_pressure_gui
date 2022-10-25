@@ -1,7 +1,7 @@
 // import libraries
 import java.awt.Frame;
 import java.awt.BorderLayout;
-import java.util.Calendar; //<>// //<>//
+import java.util.Calendar; //<>//
 import java.util.TimeZone;
 import processing.serial.*;
 import processing.sound.*;
@@ -229,6 +229,11 @@ void keyPressed(KeyEvent event) {
   beepForce.updateKey(key);
 }
 
+void mouseWheel(MouseEvent event) {
+  int e = event.getCount();
+  serialDropdown.scroll(e);
+}
+
 boolean overRect(int x, int y, int width, int height) {
   if (mouseX >= x && mouseX <= x+width && mouseY >= y && mouseY <= y+height) {
     return true;
@@ -447,6 +452,7 @@ class Dropdown extends Label {
   String[] options;
   boolean dropped;
   PApplet parent;
+  int scroll_offset;
 
   Dropdown(int ix, int iy, int iw, String ilabel, PApplet app) {
     super(ix, iy, iw, ilabel);
@@ -458,6 +464,7 @@ class Dropdown extends Label {
     input = "";
     selected = -1;
     parent = app;
+    scroll_offset = 0;
   }
 
   void getOptions() {
@@ -499,7 +506,7 @@ class Dropdown extends Label {
       selected = getIndex();
       fill(inputbg);
       int n_lines = 0;
-      for (String element : options) {
+      for (String element : subset(options, scroll_offset)) {
         n_lines ++;
         if(n_lines % 2 == 0) {
           fill(inputbg);
@@ -531,6 +538,7 @@ class Dropdown extends Label {
   
   void updateMouse() {
     if (over()) {
+      getOptions();
       if(dropped)
       {
         try{
@@ -539,11 +547,20 @@ class Dropdown extends Label {
           input = options[selected];
         } catch(Exception e) {
           input = "FAILED TO OPEN SERIAL PORT";
+          port = null;
           println(e);
         }
       } 
       dropped = !dropped;
       println(dropped);
+    } else {
+      dropped = false;
     }
+  }
+  
+  void scroll(int n) {
+    scroll_offset += n;
+    int max_offset = max(options.length - 3, 0);
+    scroll_offset = constrain(scroll_offset, 0, max_offset);
   }
 }
