@@ -50,11 +50,7 @@ public class PressureWindow extends PApplet {
       else
         nCorrect = 0;
     }
-    if(forceHistory.size() > 0)
-      ratio -= (ratio - nCorrect / forceHistory.size()) * 0.1;
-    else
-      ratio = 0;
-    constrain(ratio, 0,1);
+    ratio = nCorrect / forceHistory.size();
     if (nCorrect == forceHistory.size())
     {
       fill(yellow);
