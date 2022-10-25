@@ -1,7 +1,7 @@
 // import libraries
 import java.awt.Frame;
 import java.awt.BorderLayout;
-import java.util.Calendar; //<>//
+import java.util.Calendar;
 import java.util.TimeZone;
 import processing.serial.*;
 import processing.sound.*;
