@@ -29,7 +29,7 @@ Calendar calendar;
 boolean markPoint;
 
 // Other windows
-PressureWindow pressureWindow;
+PressureVelocityWindow pressureWindow;
 
 // Button and recording objects
 Vibration vibrate;
@@ -74,7 +74,7 @@ void settings() {
 void setup() {
   
   String[] args = {"PressureWindow"};
-  pressureWindow = new PressureWindow(5, 1, 1.5);
+  pressureWindow = new PressureVelocityWindow(1, 1, .3);
   PApplet.runSketch(args, pressureWindow);
   
   //set up window
@@ -112,7 +112,7 @@ void draw() {
   if(port == null)
   {
     // Fake force data using mouse
-    float f = sqrt(pow(pressureWindow.mouseX,2) + pow(pressureWindow.mouseY,2)) / pressureWindow.width * pressureWindow.targetForce;
+    float f = sqrt(pow(width - pressureWindow.mouseX,2) + pow(height - pressureWindow.mouseY,2)) / pressureWindow.width * pressureWindow.targetForce;
     inString = "FBK " + str(f) + " 0";
     newString = true;
   } 

@@ -39,9 +39,10 @@ public class PressureWindow extends PApplet {
     background(255);
     noStroke();
     int targetSize = int(width * 0.6);
-    
     fill(color(blue, 180));
     int fillSize = int(max(0, pow(force / targetForce, power)) * targetSize);
+    stroke(green);
+    strokeWeight(5);
     circle(width/2, width/2, fillSize);
     float nCorrect = 0;
     for (float element : forceHistory) {

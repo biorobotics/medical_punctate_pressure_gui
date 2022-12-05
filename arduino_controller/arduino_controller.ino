@@ -48,8 +48,8 @@ const int vMotorPwm = 255;
 //Pins
 const int pwm_pin = 9;
 const int high_switch = 8;
-const int low_switch = 7;
-const int vMotor = 5;
+//const int low_switch = 7;/
+const int vMotor = 7;
 const int forcePin = A0;
 
 
@@ -78,11 +78,12 @@ void setup()
   }
   Serial.println("STARTING");
   pinMode(high_switch, OUTPUT);
-  pinMode(low_switch, OUTPUT);
+//  pinMode(low_switch, OUTPUT);/
   pinMode(pwm_pin, OUTPUT);
   pinMode(vMotor, OUTPUT);
   pinMode(forcePin, INPUT);
   digitalWrite(pwm_pin, HIGH);
+  digitalWrite(vMotor, LOW);
   analogWrite(pwm_pin, 0);
 }
 
@@ -92,9 +93,9 @@ void loop()
   if (stringComplete) {
     Serial.println(inputString);
     if (inputString.equals("v")) {
-      analogWrite(vMotor, vMotorPwm);
+      digitalWrite(vMotor, LOW);
     } else if (inputString.equals("nv")) {
-      analogWrite(vMotor, 0);
+      digitalWrite(vMotor, HIGH);
     } else if (inputString.toInt() != 0) {
       targetTemp = max(minTemp, min(maxTemp, inputString.toInt()));
     }
@@ -121,17 +122,17 @@ void loop()
 
   if (temp_error < - deadzone) {
     digitalWrite(high_switch, HIGH);
-    digitalWrite(low_switch, LOW);
+//    digitalWrite(low_switch, LOW);/
     analogWrite(pwm_pin, pwm);
     isTempStable = false;
   } else if (temp_error > deadzone) {
     digitalWrite(high_switch, LOW);
-    digitalWrite(low_switch, HIGH);
+//    digitalWrite(low_switch, HIGH);/
     analogWrite(pwm_pin, pwm);
     isTempStable = false;
   } else {
     digitalWrite(high_switch, LOW);
-    digitalWrite(low_switch, LOW);
+//    digitalWrite(low_switch, LOW);/
     analogWrite(pwm_pin, 0);
     isTempStable = true;
   }
