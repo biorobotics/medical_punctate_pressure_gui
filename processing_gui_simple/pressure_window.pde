@@ -1,3 +1,34 @@
+static final String RENDERER = JAVA2D;
+
+static final void setDefaultClosePolicy(PApplet pa, boolean keepOpen) {
+  final Object surf = pa.getSurface().getNative();
+  final PGraphics canvas = pa.getGraphics();
+
+  if (canvas.isGL()) {
+    final com.jogamp.newt.Window w = (com.jogamp.newt.Window) surf;
+
+    for (com.jogamp.newt.event.WindowListener wl : w.getWindowListeners())
+      if (wl.toString().startsWith("processing.opengl.PSurfaceJOGL"))
+        w.removeWindowListener(wl); 
+
+    w.setDefaultCloseOperation(keepOpen?
+      com.jogamp.nativewindow.WindowClosingProtocol.WindowClosingMode
+      .DO_NOTHING_ON_CLOSE :
+      com.jogamp.nativewindow.WindowClosingProtocol.WindowClosingMode
+      .DISPOSE_ON_CLOSE);
+  } else if (canvas instanceof processing.awt.PGraphicsJava2D) {
+    final javax.swing.JFrame f = (javax.swing.JFrame)
+      ((processing.awt.PSurfaceAWT.SmoothCanvas) surf).getFrame(); 
+
+    for (java.awt.event.WindowListener wl : f.getWindowListeners())
+      if (wl.toString().startsWith("processing.awt.PSurfaceAWT"))
+        f.removeWindowListener(wl);
+
+    f.setDefaultCloseOperation(keepOpen?
+      f.DO_NOTHING_ON_CLOSE : f.DISPOSE_ON_CLOSE);
+  }
+}
+
 public class PressureWindow extends PApplet { 
   // Force variables
   float force;
@@ -33,6 +64,10 @@ public class PressureWindow extends PApplet {
     randomize();
   }
   
+  public void setup() {
+    setDefaultClosePolicy(this, false); 
+  }
+  
   public void setForce(float f) {
     force = f;
     float time = millis() / 1000.0;
@@ -45,6 +80,10 @@ public class PressureWindow extends PApplet {
         timeHistory.remove(i);
       }
     }
+  }
+  
+  public void setForceRange(float f) {
+    forceRange = f;
   }
   
   public void setTargetForce(float f) {

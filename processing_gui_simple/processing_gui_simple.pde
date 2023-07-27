@@ -11,7 +11,6 @@ import processing.sound.*;
 // Force + Sound variables
 processing.sound.SinOsc osc;
 float maxForce = 7;
-float forceRange = 1;
 float successTime = 0.3;
 
 // Serial variables
@@ -40,7 +39,7 @@ Label currentForce;
 Recording recording;
 SerialDropdown serialDropdown;
 GuiDropdown guiDropdown; //<>//
-TextBox temp, targetForce, beepForce;
+TextBox temp, targetForce, forceRange, beepForce;
 
 int yspacing = 40;
 int xspacing = 4;
@@ -76,10 +75,6 @@ void settings() {
 
 void setup() {
   
-  String[] args = {"PressureWindow"};
-  pressureWindow = new PressureWindow(1, forceRange, successTime);
-  PApplet.runSketch(args, pressureWindow);
-  
   //set up window
   surface.setTitle("Punctate Pressure Interface");
   surface.setResizable(true);
@@ -90,9 +85,11 @@ void setup() {
   currentcolor = baseColor;
   fontcolor = 255;
   
+  pressureWindow = new PressureWindow(1, 0.5, successTime);
+  
   serialDropdown = new SerialDropdown(xspacing, lineheight, 600, "SerialPort", this);
   lineheight += yspacing;
-  guiDropdown = new GuiDropdown(xspacing, lineheight, 600, "SerialPort", this);
+  guiDropdown = new GuiDropdown(xspacing, lineheight, 600, "Force GUI", this);
   lineheight += yspacing;
   temp = new TextBox(xspacing, lineheight, 100, "Goal temperature");
   lineheight += yspacing;
@@ -102,6 +99,9 @@ void setup() {
   lineheight += yspacing;
   targetForce = new TextBox(xspacing, lineheight, 100, "Target force");
   targetForce.input = str(pressureWindow.targetForce);
+  lineheight += yspacing;
+  forceRange = new TextBox(xspacing, lineheight, 100, "Target force range");
+  forceRange.input = str(pressureWindow.forceRange);
   lineheight += yspacing;
   beepForce = new TextBox(xspacing, lineheight, 100, "Beep force");
   beepForce.input = str(maxForce);
@@ -114,7 +114,7 @@ void setup() {
 
 void draw() {
   background(20);
-  if(port == null)
+  if(port == null && (pressureWindow.finished || pressureWindow.frameCount > 0))
   {
     // Fake force data using mouse
     float f = sqrt(pow(width - pressureWindow.mouseX,2) + pow(height - pressureWindow.mouseY,2)) / pressureWindow.width * pressureWindow.targetForce;
@@ -178,6 +178,13 @@ void draw() {
     targetForce.updated = false;
   }
   
+  if(forceRange.updated) {
+    if (forceRange.input.length() > 0) {
+      pressureWindow.setForceRange(float(forceRange.input));
+      pressureWindow.randomize();
+    }
+    forceRange.updated = false;
+  }
   if(beepForce.updated) {
     if (beepForce.input.length() > 0) {
       maxForce = int(beepForce.input);
@@ -194,6 +201,7 @@ void draw() {
   currentForce.setInput(str(forceData));
   currentForce.display();
   targetForce.display();
+  forceRange.display();
   beepForce.display();
   recording.display();
   serialDropdown.display();
@@ -220,6 +228,7 @@ void mousePressed() {
   update(mouseX, mouseY);
   temp.updateMouse();
   targetForce.updateMouse();
+  forceRange.updateMouse();
   beepForce.updateMouse();
   vibrate.updateMouse();
   recording.updateMouse();
@@ -233,6 +242,7 @@ void keyPressed(KeyEvent event) {
     markPoint = true;
   }
   targetForce.updateKey(key);
+  forceRange.updateKey(key);
   beepForce.updateKey(key);
 }
 
@@ -603,22 +613,25 @@ class GuiDropdown extends Dropdown {
       if(dropped)
       {
         float targetForceSet = float(targetForce.input);
+        float forceRangeSet = float(forceRange.input);
+        println(pressureWindow.frameCount);
+        if (pressureWindow.frameCount > 0){
+          pressureWindow.dispose();
+        }
         if (options[selected] == "None") {
-          pressureWindow.exitActual();
-          pressureWindow = new PressureWindow(targetForceSet, forceRange, successTime);
+          pressureWindow = new PressureWindow(targetForceSet, forceRangeSet, successTime);
         }
         else if (options[selected] == "Circle") {
-          pressureWindow.exitActual();
-          pressureWindow = new PressureCircleWindow(targetForceSet, forceRange, successTime);
+          pressureWindow = new PressureCircleWindow(targetForceSet, forceRangeSet, successTime);
         }
         else if (options[selected] == "Bar") {
-          pressureWindow.exitActual();
-          pressureWindow = new PressureWindowArrow(targetForceSet, forceRange, successTime);
+          pressureWindow = new PressureWindowArrow(targetForceSet, forceRangeSet, successTime);
         }
         else if (options[selected] == "Green / Red") {
-          pressureWindow.exitActual();
-          pressureWindow = new PressureVelocityWindow(targetForceSet, forceRange, successTime);
+          pressureWindow = new PressureVelocityWindow(targetForceSet, forceRangeSet, successTime);
         }
+        String[] args = {"PressureWindow"};
+        PApplet.runSketch(args, pressureWindow);
       } 
       dropped = !dropped;
       println(dropped);
