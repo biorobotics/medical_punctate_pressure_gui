@@ -429,6 +429,13 @@ class Recording extends Label {
         output = createWriter(filenameGen()); 
         startTime = currentSec();
         inputbg = color(200, 100, 100);
+        String infoLine = "Goal temperature: " + nf(goalTemp);
+        infoLine += " Target force: " + targetForce.input;
+        infoLine += " Force range: " + forceRange.input;
+        infoLine += " Beep force: " + beepForce.input;
+        output.println(infoLine);
+        String firstLine = "Date, Temperature, Force, Mark, Vibration";
+        output.println(infoLine);
       } else {
         inputbg = color(50);
         output.flush(); // Writes the remaining data to the file
@@ -452,10 +459,16 @@ class Recording extends Label {
       String date = nf(year(), 4) + "-" + nf(month(), 2) + "-" + nf(day(), 2) + " " + nf(hour(),2) + ":" + nf(minute(), 2) + ":" + nf(seconds, 2, 3); 
       String nextLine = date + ", " + nfs(temp, 3, 3) + ", " + nfs(force, 3, 3) + ", ";
       if (markPoint) {
-        nextLine += "MARK";
+        nextLine += "MARK, ";
       }
       else {
-        nextLine += " ";
+        nextLine += " , ";
+      }
+      if (vibrate.selected) {
+        nextLine += "True";
+      }
+      else {
+        nextLine += "False";
       }
       output.println(nextLine);
     }
