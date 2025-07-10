@@ -151,7 +151,7 @@ class Vibration extends Checkbox{
     super.updateMouse();
     if (over()) {
       if (port != null) {
-        port.write(selected ? "nv\n" : "v\n");
+        port.write(selected ? "v\n" : "nv\n");
       }
     }
   }
