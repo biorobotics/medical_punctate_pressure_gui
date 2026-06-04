@@ -83,7 +83,7 @@ void setup()
   pinMode(vMotor, OUTPUT);
   pinMode(forcePin, INPUT);
   digitalWrite(pwm_pin, HIGH);
-  digitalWrite(vMotor, LOW);
+  digitalWrite(vMotor, HIGH);
   analogWrite(pwm_pin, 0);
 }
 
